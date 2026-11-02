@@ -21,3 +21,21 @@ export function getOptionalPositiveIntegerValueFlag(
   }
   return value
 }
+
+export function getOptionalFiniteNumberFlag(
+  flags: Map<string, string | boolean>,
+  name: string
+): number | undefined {
+  if (!flags.has(name)) {
+    return undefined
+  }
+  const raw = flags.get(name)
+  if (typeof raw !== 'string' || raw.length === 0) {
+    throw new RuntimeClientError('invalid_argument', `Missing value for --${name}.`)
+  }
+  const value = Number(raw)
+  if (!Number.isFinite(value)) {
+    throw new RuntimeClientError('invalid_argument', `Invalid finite number for --${name}: ${raw}`)
+  }
+  return value
+}

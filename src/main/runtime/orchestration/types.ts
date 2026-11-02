@@ -275,6 +275,8 @@ export type TaskRow = {
   display_name: string | null
   spec: string
   status: TaskStatus
+  /** Higher dispatches first; ties keep creation order. */
+  priority: number
   deps: string
   result: string | null
   created_at: string

@@ -4,8 +4,8 @@ import type { TaskStatus } from '../../../../orchestration/db'
 import { OrchestrationError } from '../../../../orchestration/orchestration-error'
 import { ORCHESTRATION_LEGACY_RUN_ID } from '../../../../../../shared/orchestration-rpc-contract'
 import { abbreviateOrchestrationTasks } from '../../../../../../shared/orchestration-task-summary'
-import { parseOrchestrationTaskDepsFlag } from '../../../../orchestration/task-deps-flag'
-import { orchestrationCallerIdentity, resolveRunScope } from '../runs/run-scope'
+import { createTaskInRunScope } from './task-create'
+import { resolveRunScope } from '../runs/run-scope'
 import {
   readMutationReplayNudge,
   stripMutationReplayNudge
@@ -192,46 +192,13 @@ export const ORCHESTRATION_MESSAGE_METHODS = [
     handler: (
       params,
       { orchestrationCompatibilityEvidence, orchestrationCaller, runtime, legacyCoordinatorRunId }
-    ) => {
-      const db = runtime.getOrchestrationDb()
-      const deps = params.deps ? parseOrchestrationTaskDepsFlag(params.deps) : undefined
-      const run = resolveRunScope(runtime, {
-        runId: params.run,
-        callerTerminalHandle: params.callerTerminalHandle,
-        requireCurrentConsumer: true,
-        legacyCoordinatorRunId,
-        callerEvidence: orchestrationCompatibilityEvidence,
-        callerSession: orchestrationCaller
+    ) =>
+      createTaskInRunScope(params, {
+        runtime,
+        orchestrationCaller,
+        orchestrationCompatibilityEvidence,
+        legacyCoordinatorRunId
       })
-      // A handle-less session creates root Tasks: Task lineage is recorded by terminal only.
-      const creatorHandle = params.callerTerminalHandle
-        ? orchestrationCallerIdentity(runtime, {
-            handle: params.callerTerminalHandle,
-            session: orchestrationCaller,
-            paneKey: null
-          }).terminalHandle
-        : null
-      const creatorAuthority = creatorHandle
-        ? runtime.getOrchestrationDispatchAuthority(creatorHandle)
-        : null
-      const task = db.createTask({
-        spec: params.spec,
-        taskTitle: params.taskTitle,
-        displayName: params.displayName,
-        deps,
-        parentId: params.parent,
-        createdByTerminalHandle: creatorHandle ?? undefined,
-        ...(creatorAuthority?.paneKey && creatorAuthority.processIncarnation
-          ? {
-              createdByPaneKey: creatorAuthority.paneKey,
-              createdByProcessIncarnation: creatorAuthority.processIncarnation,
-              createdByRunGeneration: run.consumer_generation
-            }
-          : {}),
-        runId: run.id
-      })
-      return { task }
-    }
   }),
 
   defineMethod({

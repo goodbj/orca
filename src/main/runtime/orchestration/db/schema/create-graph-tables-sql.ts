@@ -132,6 +132,8 @@ CREATE TABLE IF NOT EXISTS tasks (
       'pending', 'ready', 'dispatched',
       'completed', 'failed', 'blocked'
     )),
+  -- Higher dispatches first; ties keep creation order.
+  priority      INTEGER NOT NULL DEFAULT 0,
   deps          TEXT NOT NULL DEFAULT '[]',
   result        TEXT,
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),

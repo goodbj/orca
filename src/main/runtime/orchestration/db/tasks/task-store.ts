@@ -15,6 +15,7 @@ export function createTask(
     displayName?: string
     deps?: string[]
     parentId?: string
+    priority?: number
     createdByTerminalHandle?: string
     createdByPaneKey?: string
     createdByProcessIncarnation?: string
@@ -51,7 +52,7 @@ export function createTask(
       `INSERT INTO tasks (
          id, run_id, parent_id, created_by_terminal_handle, created_by_pane_key,
          created_by_process_incarnation, created_by_run_generation,
-         task_title, display_name, spec, status, deps
+         task_title, display_name, spec, status, priority, deps
        ) VALUES (
          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
          CASE WHEN EXISTS (
@@ -62,7 +63,7 @@ export function createTask(
               OR dependency.run_id <> ?
               OR dependency.status <> 'completed'
          ) THEN 'pending' ELSE 'ready' END,
-         ?
+         ?, ?
        )`
     )
     .run(
@@ -78,6 +79,7 @@ export function createTask(
       task.spec,
       depsJson,
       runId,
+      task.priority ?? 0,
       depsJson
     )
   return this.db.prepare(`SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE id = ?`).get(id) as TaskRow
@@ -135,24 +137,26 @@ export function listTasks(
   if (filter?.ready) {
     return this.db
       .prepare(
-        `SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE ${runWhere}status = 'ready' ORDER BY created_at`
+        `SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE ${runWhere}status = 'ready' ORDER BY priority DESC, created_at`
       )
       .all(...runParams) as TaskRow[]
   }
   if (filter?.status) {
     return this.db
       .prepare(
-        `SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE ${runWhere}status = ? ORDER BY created_at`
+        `SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE ${runWhere}status = ? ORDER BY priority DESC, created_at`
       )
       .all(...runParams, filter.status) as TaskRow[]
   }
   if (filter?.runId) {
     return this.db
-      .prepare(`SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE run_id = ? ORDER BY created_at`)
+      .prepare(
+        `SELECT ${TASK_COLUMN_LIST} FROM tasks WHERE run_id = ? ORDER BY priority DESC, created_at`
+      )
       .all(filter.runId) as TaskRow[]
   }
   return this.db
-    .prepare(`SELECT ${TASK_COLUMN_LIST} FROM tasks ORDER BY created_at`)
+    .prepare(`SELECT ${TASK_COLUMN_LIST} FROM tasks ORDER BY priority DESC, created_at`)
     .all() as TaskRow[]
 }
 
@@ -196,7 +200,7 @@ export function listTasksWithDispatch(
       LIMIT 1
     )
     ${where}
-    ORDER BY t.created_at
+    ORDER BY t.priority DESC, t.created_at
   `
   return this.db.prepare(sql).all(...params) as (TaskRow & {
     assignee_handle: string | null

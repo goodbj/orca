@@ -8,6 +8,7 @@ import { abbreviateOrchestrationTasks } from '../../../shared/orchestration-task
 import { callOrchestrationMutation } from './mutation-request'
 import { readTextOrFileFlag } from '../../command-body-input'
 import { resolveCoordinatorTerminalHandle, runScopedSessionCaller } from './terminal-identity'
+import { getOptionalFiniteNumberFlag } from './numeric-flags'
 
 const TASK_STATUS_VALUES = [
   'pending',
@@ -31,6 +32,7 @@ export const ORCHESTRATION_TASK_HANDLERS: Record<string, CommandHandler> = {
         displayName: getOptionalStringFlag(flags, 'display-name'),
         deps: getOptionalStringFlag(flags, 'deps'),
         parent: getOptionalStringFlag(flags, 'parent'),
+        priority: getOptionalFiniteNumberFlag(flags, 'priority'),
         run: getOptionalStringFlag(flags, 'run'),
         callerTerminalHandle
       }

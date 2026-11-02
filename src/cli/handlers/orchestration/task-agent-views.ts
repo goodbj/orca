@@ -12,6 +12,7 @@ export type TaskListResult = {
     spec_truncated?: boolean
     deps?: string
     parent_id?: string | null
+    priority?: number
     result?: string | null
   }[]
   count: number
@@ -36,6 +37,7 @@ export const TASK_LIST_VIEW: OrchestrationAgentView<TaskListResult, Record<strin
       title: task.display_name ?? task.task_title ?? task.spec.slice(0, 60),
       deps: task.deps && task.deps !== '[]' ? task.deps : undefined,
       parentId: task.parent_id ?? undefined,
+      priority: task.priority ?? undefined,
       dispatchId: task.dispatch_id ?? undefined,
       assignee: task.assignee_handle ?? undefined
     })),

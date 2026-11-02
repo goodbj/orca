@@ -511,6 +511,66 @@ describe('Coordinator', () => {
     expect(result.completedTasks).toContain(t2.id)
   })
 
+  it('dispatches higher-priority ready tasks first', async () => {
+    db = new OrchestrationDb(':memory:')
+    const runtime = createMockRuntime()
+    runtime.terminals = [{ handle: 'term_a', worktreeId: 'wt1', connected: true, writable: true }]
+
+    const low = db.createTask({ runId, spec: 'low', priority: 1 })
+    const high = db.createTask({ runId, spec: 'high', priority: 5 })
+
+    const coordinator = new Coordinator(db, runtime, {
+      spec: 'go',
+      coordinatorHandle: 'coord',
+      pollIntervalMs: 50,
+      maxConcurrent: 1
+    })
+
+    const runPromise = coordinator.run()
+
+    await vi.advanceTimersByTimeAsync(100)
+
+    expect(db.getTask(high.id)?.status).toBe('dispatched')
+    expect(db.getTask(low.id)?.status).toBe('ready')
+
+    insertWorkerDone(db, { taskId: high.id })
+    await vi.advanceTimersByTimeAsync(200)
+    insertWorkerDone(db, { taskId: low.id })
+
+    const result = await settleCoordinatorRun(runPromise)
+    expect(result.status).toBe('completed')
+    expect(result.completedTasks).toContain(high.id)
+    expect(result.completedTasks).toContain(low.id)
+  })
+
+  it('escalates a stale heartbeat once per dispatch', async () => {
+    db = new OrchestrationDb(':memory:')
+    const runtime = createMockRuntime()
+    runtime.terminals = [{ handle: 'term_a', worktreeId: 'wt1', connected: true, writable: true }]
+    const logs: string[] = []
+
+    const task = db.createTask({ runId, spec: 'long work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_a')
+    db.recordHeartbeat(dispatch.id, '2026-05-03T00:00:00.000Z')
+
+    const coordinator = new Coordinator(db, runtime, {
+      spec: 'go',
+      coordinatorHandle: 'coord',
+      pollIntervalMs: 50,
+      onLog: (msg) => logs.push(msg)
+    })
+
+    const runPromise = coordinator.run()
+    await vi.advanceTimersByTimeAsync(200)
+    coordinator.stop()
+
+    const result = await settleCoordinatorRun(runPromise)
+    const stale = result.escalations.filter((m) => m.subject.startsWith('stale_heartbeat'))
+    expect(stale.length).toBe(1)
+    expect(stale[0].payload).toContain(dispatch.id)
+    expect(logs.some((line) => line.includes('Stale heartbeat'))).toBe(true)
+  })
+
   it('respects maxConcurrent limit', async () => {
     db = new OrchestrationDb(':memory:')
     const runtime = createMockRuntime()

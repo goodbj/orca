@@ -81,6 +81,8 @@ export const TaskCreateParams = z.object({
   displayName: OptionalString,
   deps: OptionalString,
   parent: OptionalString,
+  // Higher dispatches first; ties keep creation order. Default 0.
+  priority: OptionalFiniteNumber,
   callerTerminalHandle: OptionalString,
   run: OptionalString
 })

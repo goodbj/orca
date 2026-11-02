@@ -29,6 +29,7 @@ export const TASK_COLUMNS = [
   'display_name',
   'spec',
   'status',
+  'priority',
   'deps',
   'result',
   'created_at',
