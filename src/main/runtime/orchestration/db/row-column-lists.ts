@@ -13,6 +13,7 @@ export const RUN_COLUMNS = [
   'coordinator_orca_session_id_generation',
   'consumer_generation',
   'legacy',
+  'max_concurrent',
   'created_at',
   'updated_at'
 ] as const satisfies readonly (keyof RunRow)[]

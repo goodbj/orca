@@ -14,6 +14,7 @@ const RUN_ROW: RunRow = {
   coordinator_orca_session_id_generation: 3,
   consumer_generation: 3,
   legacy: 0,
+  max_concurrent: null,
   created_at: '2026-09-04T18:53:07Z',
   updated_at: '2026-09-04T18:53:09Z'
 }
@@ -28,6 +29,7 @@ describe('exposeRun', () => {
       'created_at',
       'id',
       'legacy',
+      'max_concurrent',
       'objective',
       'updated_at'
     ])

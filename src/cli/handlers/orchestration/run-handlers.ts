@@ -17,6 +17,7 @@ import {
   findRunOlderRuntimeWillUnbind,
   olderRuntimeUnboundRunNext
 } from './older-runtime-run-binding'
+import { getOptionalFiniteNumberFlag } from './numeric-flags'
 
 const RUN_LIST_DEFAULT_LIMIT = 10
 
@@ -29,7 +30,8 @@ export const ORCHESTRATION_RUN_HANDLERS: Record<string, CommandHandler> = {
       next?: string
     }>(client, flags, 'orchestration.runCreate', {
       objective: getRequiredStringFlag(flags, 'objective'),
-      from
+      from,
+      maxConcurrent: getOptionalFiniteNumberFlag(flags, 'max-concurrent')
     })
     if (unboundRunId && unboundRunId !== result.result.run.id) {
       result.result.next = olderRuntimeUnboundRunNext(unboundRunId)

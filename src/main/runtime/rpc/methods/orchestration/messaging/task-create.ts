@@ -3,12 +3,13 @@ import { orchestrationCallerIdentity, resolveRunScope } from '../runs/run-scope'
 import type { TaskCreateParams } from '../schemas'
 import type { z } from 'zod'
 import type { OrcaRuntimeService } from '../../../../orca-runtime'
-import type { OrchestrationCallerIdentity } from '../../../../orchestration/orchestration-caller-identity'
+import type { OrchestrationSessionCaller } from '../../../../orchestration/orchestration-caller-identity'
+import type { OrchestrationCompatibilityEvidence } from '../../../../../../shared/orchestration-compatibility-evidence'
 
 type TaskCreateDeps = {
   runtime: OrcaRuntimeService
-  orchestrationCaller?: OrchestrationCallerIdentity
-  orchestrationCompatibilityEvidence?: unknown
+  orchestrationCaller?: OrchestrationSessionCaller
+  orchestrationCompatibilityEvidence?: OrchestrationCompatibilityEvidence
   legacyCoordinatorRunId?: string
 }
 

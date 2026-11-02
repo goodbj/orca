@@ -161,6 +161,7 @@ describe('a structured worker-start that fails after the session exists', () => 
         display_name: null,
         spec: 'do the thing',
         status: 'pending',
+        priority: 0,
         deps: '[]',
         result: null,
         created_at: '2026-01-01T00:00:00.000Z',

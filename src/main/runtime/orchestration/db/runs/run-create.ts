@@ -12,6 +12,8 @@ export function createRun(
     coordinatorPaneKey: string | null
     /** The coordinator's bare Orca session id when it is a structured session; see orca-session-address. */
     coordinatorOrcaSessionId?: OrcaSessionId | null
+    /** Per-run cap on concurrently dispatched Tasks; null means the coordinator default. */
+    maxConcurrent?: number | null | undefined
   }
 ): RunRow {
   const coordinator = {
@@ -26,15 +28,16 @@ export function createRun(
       .prepare(
         `INSERT INTO runs (
            id, objective, coordinator_handle, coordinator_pane_key, coordinator_orca_session_id,
-           coordinator_orca_session_id_generation, consumer_generation, legacy
-         ) VALUES (?, ?, ?, ?, ?, 1, 1, 0)`
+           coordinator_orca_session_id_generation, consumer_generation, legacy, max_concurrent
+         ) VALUES (?, ?, ?, ?, ?, 1, 1, 0, ?)`
       )
       .run(
         id,
         params.objective,
         coordinator.terminalHandle,
         coordinator.paneKey,
-        coordinator.orcaSessionId
+        coordinator.orcaSessionId,
+        params.maxConcurrent ?? null
       )
     const address = mailboxAddressOf(coordinator)
     if (address !== null) {

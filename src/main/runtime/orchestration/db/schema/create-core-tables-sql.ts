@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS runs (
   coordinator_orca_session_id_generation INTEGER,
   consumer_generation   INTEGER NOT NULL DEFAULT 0,
   legacy                INTEGER NOT NULL DEFAULT 0,
+  -- Per-run cap on concurrently dispatched Tasks; null means the coordinator default.
+  max_concurrent        INTEGER,
   created_at            TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at            TEXT NOT NULL DEFAULT (datetime('now'))
 );

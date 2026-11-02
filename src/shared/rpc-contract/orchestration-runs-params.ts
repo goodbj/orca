@@ -1,10 +1,17 @@
 import { z } from 'zod'
-import { OptionalBoolean, OptionalString, requiredString } from './rpc-param-primitives'
+import {
+  OptionalBoolean,
+  OptionalFiniteNumber,
+  OptionalString,
+  requiredString
+} from './rpc-param-primitives'
 import { ORCHESTRATION_RUN_PAGE_LIMIT } from '../orchestration-run-pagination'
 
 export const RunCreateParams = z.object({
   objective: requiredString('Missing --objective'),
-  from: requiredString('Missing coordinator terminal')
+  from: requiredString('Missing coordinator terminal'),
+  // Per-run cap on concurrently dispatched Tasks; null means the coordinator default.
+  maxConcurrent: OptionalFiniteNumber
 })
 
 export const RunUseParams = z.object({

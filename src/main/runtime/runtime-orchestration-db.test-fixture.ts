@@ -69,6 +69,7 @@ export function taskLineageRow(fields: Partial<TaskRuntimeLineageRow>): TaskRunt
     display_name: null,
     spec: '',
     status: 'ready',
+    priority: 0,
     deps: '[]',
     result: null,
     created_at: createdAt,
@@ -92,6 +93,7 @@ export function runRow(fields: Partial<RunRow>): RunRow {
     coordinator_orca_session_id_generation: null,
     consumer_generation: 0,
     legacy: 0,
+    max_concurrent: null,
     created_at: createdAt,
     updated_at: createdAt,
     ...fields

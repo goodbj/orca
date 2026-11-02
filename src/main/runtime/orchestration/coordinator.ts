@@ -240,7 +240,10 @@ export class Coordinator {
     }
 
     const dispatched = this.db.listTasks({ status: 'dispatched' })
-    let slotsAvailable = this.opts.maxConcurrent - dispatched.length
+    // A Run's own --max-concurrent overrides the coordinator default.
+    const runId = readyTasks[0]?.run_id
+    const runCap = runId ? this.db.getRun(runId)?.max_concurrent : null
+    let slotsAvailable = (runCap ?? this.opts.maxConcurrent) - dispatched.length
     if (slotsAvailable <= 0) {
       return
     }

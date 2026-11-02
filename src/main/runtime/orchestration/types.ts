@@ -53,6 +53,8 @@ export type RunRow = {
   coordinator_orca_session_id_generation: number | null
   consumer_generation: number
   legacy: number
+  /** Per-run cap on concurrently dispatched Tasks; null means the coordinator default. */
+  max_concurrent: number | null
   created_at: string
   updated_at: string
 }

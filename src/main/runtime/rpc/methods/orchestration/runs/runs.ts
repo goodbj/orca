@@ -32,13 +32,15 @@ export function createBoundRun(
   runtime: OrcaRuntimeService,
   caller: OrchestrationCallerIdentity,
   from: string,
-  objective: string
+  objective: string,
+  maxConcurrent?: number | null
 ): RunRow {
   const run = runtime.getOrchestrationDb().createRun({
     objective,
     coordinatorHandle: caller.terminalHandle,
     coordinatorPaneKey: caller.paneKey,
-    coordinatorOrcaSessionId: caller.orcaSessionId
+    coordinatorOrcaSessionId: caller.orcaSessionId,
+    maxConcurrent
   })
   // The earlier Run keeps this consumer, so only waiters that plain check now redirects end.
   runtime.cancelMessageWaiters(from)
@@ -58,7 +60,11 @@ export const ORCHESTRATION_RUN_METHODS = [
         callerSession: orchestrationCaller,
         requireStablePane: true
       })
-      return { run: exposeRun(createBoundRun(runtime, caller, params.from, params.objective)) }
+      return {
+        run: exposeRun(
+          createBoundRun(runtime, caller, params.from, params.objective, params.maxConcurrent)
+        )
+      }
     }
   }),
   defineMethod({
