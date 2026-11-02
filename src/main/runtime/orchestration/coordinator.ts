@@ -3,6 +3,7 @@ import type { MessageRow, CoordinatorStatus } from './types'
 import { reconcileLifecycleMessage } from './lifecycle-reconciliation'
 import type { CoordinatorRuntime, WorktreeDrift } from './coordinator-runtime-contract'
 import { applyEscalationToDispatch } from './coordinator-escalation-triage'
+import { collectStaleHeartbeatEscalations } from './coordinator-stale-heartbeat-watchdog'
 import { evaluateDagConvergence } from './coordinator-dag-convergence'
 import {
   openDecisionGateFromMessage,
@@ -27,7 +28,6 @@ type CoordinatorState = {
   failedTasks: string[]
   escalations: MessageRow[]
 }
-
 const DEFAULT_POLL_MS = 2000
 const MAX_CONCURRENT_DEFAULT = 4
 
@@ -36,6 +36,7 @@ export class Coordinator {
   private runtime: CoordinatorRuntime
   private state: CoordinatorState
   private stopped = false
+  private staleHeartbeatAlerts = new Set<string>()
   private opts: Required<Omit<CoordinatorOptions, 'onLog' | 'worktree'>> & {
     onLog: (msg: string) => void
     worktree?: string
@@ -157,6 +158,7 @@ export class Coordinator {
     this.processEscalations()
     reblockTasksWithPendingGates(this.db)
     await this.dispatchReadyTasks()
+    this.checkStaleHeartbeats()
     return this.checkConvergence()
   }
 
@@ -216,6 +218,19 @@ export class Coordinator {
   }
 
   private processEscalations(): void {}
+
+  // Escalation triage only acts on exact task+dispatch bindings from the worker itself, so the
+  // watchdog keeps its alerts out of the apply path: it logs and records them as run escalations.
+  private checkStaleHeartbeats(): void {
+    this.state.escalations.push(
+      ...collectStaleHeartbeatEscalations({
+        db: this.db,
+        coordinatorHandle: this.opts.coordinatorHandle,
+        onLog: this.opts.onLog,
+        alerted: this.staleHeartbeatAlerts
+      })
+    )
+  }
 
   private async dispatchReadyTasks(): Promise<void> {
     this.state.phase = 'dispatching'
