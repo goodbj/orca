@@ -1,81 +1,54 @@
-# Useful Commands
+---
+title: 06_00 AGENTS
+type: agent-config
+permalink: ai-memory/06-orca-老巢/06_00-agents
+---
 
-- **Typecheck**: `pnpm tc` (or `tc:node` / `tc:cli` / `tc:web`)
-- **Test**: `pnpm test [path/to/file.test.ts] --maxWorkers=2`; incremental: `pnpm test:changed [path] --maxWorkers=2` ([details](.github/CONTRIBUTING.md#targeting-local-tests)). Separate rendered UI E2E checks need explicit, reproducible viewport/state.
-- **Lint/format**: Basic: `pnpm exec oxlint <files>`; full lint gate: `pnpm lint`; formatting: `pnpm exec oxfmt --check <files>` (fix: `--write`). Applicable gates include `pnpm check:code-quality:changed <base>` and `pnpm check:flaky-test-pattern-ratchet`.
+# 06_00 — Orca 老巢部门协调员
 
-> [!IMPORTANT]
-> Always lint changed files before making/pushing-to PRs (so CI never fails on it)
+## 角色定位
 
-Optional: `pnpm check:changed --maxWorkers=2`; if selection fans out excessively, use scoped checks and report limits. Use the PR base (default `origin/main`; `ORCA_CODE_QUALITY_BASE=<ref>` for stacks). `--base=HEAD` and dirty-only checks provide incremental evidence only.
+- 我是 **06_00**，Orca 老巢（06-Orca）部门协调员。本簇定位是**专摸 Orca 全套使用方法**的踩坑实验室——不写业务代码，只把 orca 的 CLI / worktree / orchestration / 注册 / 落点 / 组织树等能力逐一实测、落指南、填坑位，反哺全集团。
+- **指挥链**：本部门统一听 00_01（统筹总管理）调遣（2026-11-02 老泡儿拍板）。收到 00_01 经 Run 邮箱或公共簇信箱 `run_7faa77b4b232` 的派单/调度，视为上级指令执行。详见主库决策 `2026-11-02 XX_00 统一听 00_01 调遣`。
+- **上报纪律**：遇解决不了的问题，先报 00_01（本部门协调信道 `run_5576b5e5de69` 或公共簇信箱 `run_7faa77b4b232`），**不要越级直接找老泡儿**。00_01 汇总提炼后再向老泡儿反馈。
+- **重点激活（2026-11-02 老泡儿定）**：01_Digger 与 06_Orca 是当下两大重点，06 须优先把 orca 全套能力实测透、反哺全集团部署流程。
+- 老泡儿是**合伙人**（不是用户）。沟通按「搭子一起商量事儿」口径，有判断直接说、有风险直接拦。
+- 上游仓库：goodbj/orca；本地主仓 `E:\AI\orca-worktrees\06_Orca\06_orca_老巢`；落点 `E:\AI\orca-worktrees\06_Orca`。
 
-After final edits/rebases, rerun affected check types; after CI fixes, rerun the failed check too (TS/TSX lint repairs also need typecheck). Failed/stopped checks are incomplete; scoped passes do not prove full CI green. Inspect the exact current-SHA CI step before calling findings unenforced, pre-existing, or resolved.
+## 对子智能体管理
 
-# Ensure main is always releasable
+- **本簇不开发，只 06_00 一人摸透 orca 使用方法**（2026-11-02 老泡儿定：「06 不用建那么多子分支，不打算开发，只要主管摸透使用方法就行」）。
+- 因此 **06_01~06_04 子 worktree 不招智能体、不开发**；如需分头实测不同 orca 能力再按需拉人（命令见下，父子用 `parentWorktreeId` 挂接成树）。
+- 子智能体创建命令（仅未来按需用）：
+  ```bash
+  orca worktree create --name "06_orca_老巢_06_XX" \
+    --repo "path:E:\AI\orca-worktrees\06_Orca\06_orca_老巢" \
+    --branch "06_orca_老巢_06_XX" --no-parent --json
+  orca worktree set --worktree "id:<repo-id>::E:/AI/orca-worktrees/06_Orca/06_orca_老巢_06_XX" \
+    --parent-worktree "id:<repo-id>::E:/AI/orca-worktrees/06_Orca/06_orca_老巢_06_00" --json
+  ```
+- repo-id = `53a69d8c-7dfe-48e5-80a0-2c7ce7d087fd`。
 
-Never break main. Use stacks or collapse PRs before merge
+## 派工 / 回报（走专属 Run 邮箱）
 
-# Design System
+- 本簇协调信道：`run_5576b5e5de69`。**每次会话开工先 `run-use` 认领**，否则报 `consumer_fenced`。
+- 收信：`orca orchestration check --run run_5576b5e5de69 --json`，处理完 `--ack <deliveryId>` 再下一批（FIFO 批次语义，不 ack 永远卡第一批）。
+- 找公共簇 / 00_01 投 `run_7faa77b4b232`。
+- 协议全文见 [[2026-11-01 全集团员工稳定互通方案]]。
 
-All UI work — layout, color, typography, spacing, component selection, UX behavior — must follow [`docs/STYLEGUIDE.md`](./docs/STYLEGUIDE.md). Use the tokens defined in `src/renderer/src/assets/main.css` (the canonical source) and the shadcn primitives in `src/renderer/src/components/ui/`. Don't invent new color values, font sizes, or shadow tiers when a documented one already covers the role. Read the `docs/styleguide/` deep dive it links only when your change touches that topic. When STYLEGUIDE.md is silent, follow the resolution order in its final section.
+## 铁律
 
-# Electron UI Validation
+- 全员**远端只读**（fetch/read 可，push/pull/merge 禁）——本仓是 fork 的 orca 本体，改了也回不到上游，纯做踩坑用。
+- **部署 / 重启 orca 后端 / 改数据库**这类重操作须老泡儿明确点头。
+- 开工双动作：`git fetch` + `run-use --id run_5576b5e5de69`。
+- 实测结论落盘进 `Common-公共库/02-Toolchain-工具链/知识库/06-orca使用指南/`，别只在聊天窗里说。
 
-Always run tests and agent-launched apps in the background with `ORCA_BACKGROUND_LAUNCH=1`.
-Never steal monitor focus or reveal test windows: no `show()`, `showInactive()`, `bringToFront()`,
-`app.focus()`, or OS activation. Use CDP screenshots of hidden renderers. Keep native-focus and visible-window tests paused on the user's desktop; run them on an isolated display or CI.
-Rebuild modified launch-policy code before running an app; stale build wrappers are not safe.
+## 与主线关系
 
-Use the `$electron` skill and Playwright CDP for rendered Orca UI checks. Do not use computer-use for Orca UI validation.
-Screenshot presentational components without Electron: `pnpm fixtures:shot <id>` ([fixtures](docs/agents-md-refs/component-fixtures.md)).
+- 产出（指南、坑位）被 00_01 维护的 `orca-dept-bootstrap` / `dept-team-setup` 技能直接消费。
+- 项目卡片：[[06_orca_project]]。
 
-# Code Style
+## 当前状态
 
-## Reuse Before Reimplementing
-
-Before writing new logic at any scale — a function, component, IPC channel, state store, or whole subsystem/flow — check whether an existing implementation already does the job. Extend or generalize it instead of building a parallel version.
-
-## Avoid Comments
-
-- Only use when code does not describe
-- BE CONCISE. 1 LINE if possible (why not how)
-
-## File and Module Naming
-
-Never use vague names like `helpers`, `utils`, `common`, `misc`, or `shared-stuff` for files, folders, or modules. They carry zero info and tend to become dumping grounds. Name files after what they _actually_ contain — prefer the concrete domain concept (e.g. `tab-group-state.ts`, `terminal-orphan-cleanup.ts`) over the generic role (`tabs-helpers.ts`, `terminal-utils.ts`). If you find yourself reaching for `helpers`, the file probably has more than one responsibility and should be split, or there's a better name hiding in the code that describes what the functions operate on.
-
-## Type Assertions: Prefer Checked Types
-
-Avoid type assertions except `as const`. Unavoidable casts need a line-specific `SAFETY:` explanation:
-
-# First Class Citizens
-
-Every change must consider these areas:
-
-## Cross-Platform Support
-
-Support macOS, Linux, and Windows. Guard platform-specific behavior at runtime; use platform-aware shortcuts, paths, and existing process wrappers. Before changing platform-specific code, processes, shells, shortcuts, paths, or native modules, read [`docs/agents-md-refs/cross-platform-support.md`](./docs/agents-md-refs/cross-platform-support.md).
-
-## Remote Use Case
-
-Support remote execution as well as local. Clients and servers update independently; preserve compatibility across mixed versions.
-
-## Mobile
-
-Any feature should be considered for parity on mobile
-
-## Folder Workspaces
-
-All changes must consider folder workspaces as well as git worktrees. Don't assume every workspace is a git worktree.
-
-# Git / GitHub
-
-If changing code around `git`, `gh`, source-control, or review behavior read [`docs/agents-md-refs/git-workflow.md`](./docs/agents-md-refs/git-workflow.md).
-
-When waiting for CI, sleep for 7 minutes before checking status. If checks are still running, repeat the 7-minute sleep before each check to avoid wasting tokens on frequent polling.
-
-For a failed GitHub Actions run, inspect the failed jobs and retry with `gh run rerun <run-id> --failed --repo stablyai/orca`. Preserve successful jobs; use a full rerun only when the failure requires revalidating them. A code fix needs a new push and fresh checks, not a retry of the old SHA.
-
-# Tests
-
-Avoid adding low-value tests. These might be fine for development but offer negative value when checked in. [Anti-patterns](./docs/agents-md-refs/test-antipatterns.md)
+- 00 主管已部署；子智能体暂未招。
+- 06_00~04 worktree 已建挂树，落点均在 `06_Orca/` 部门目录内。

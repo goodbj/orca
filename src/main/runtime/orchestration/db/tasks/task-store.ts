@@ -15,7 +15,7 @@ export function createTask(
     displayName?: string
     deps?: string[]
     parentId?: string
-    priority?: number
+    priority?: number | undefined
     createdByTerminalHandle?: string
     createdByPaneKey?: string
     createdByProcessIncarnation?: string
